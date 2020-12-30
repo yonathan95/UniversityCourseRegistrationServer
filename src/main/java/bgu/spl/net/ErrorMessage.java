@@ -1,6 +1,6 @@
 package bgu.spl.net;
 
-public class ErrorMessage {
+public class ErrorMessage implements OpMessage{
 
 
     private short Opcode = 13;
@@ -12,7 +12,7 @@ public class ErrorMessage {
     public short getMessageOpcode() {
         return MessageOpcode;
     }
-    public short getOpcode() {
+    public Short getOpcode() {
         return Opcode;
     }
 }
