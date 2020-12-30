@@ -3,7 +3,6 @@ package bgu.spl.net;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Stream;
 
@@ -16,15 +15,16 @@ import java.util.stream.Stream;
  * You can add private fields and methods to this class as you see fit.
  */
 public class Database {
-    private HashMap<String,String> students;
-    private HashMap<String,String> administrators;
-    private HashMap<String,ArrayList<Integer>> studentCourses;
-    private HashMap<Integer,Course> courses;
-    private ArrayList<String> loggedIn;
+    private final HashMap<String,String> students;
+    private final HashMap<String,String> administrators;
+    private final HashMap<String,ArrayList<Integer>> studentCourses;
+    private final HashMap<Integer,Course> courses;
+    private final ArrayList<String> loggedIn;
     private final ReentrantReadWriteLock studentsReadWriteLock = new ReentrantReadWriteLock();
     private final ReentrantReadWriteLock administratorsReadWriteLock = new ReentrantReadWriteLock();
     private final ReentrantReadWriteLock studentCoursesReadWriteLock = new ReentrantReadWriteLock();
     private final ReentrantReadWriteLock loggedInReadWriteLock = new ReentrantReadWriteLock();
+    private final Object registrationLock = new Object();
 
     private static class DatabaseHolder{
         private static Database instance = new Database();
@@ -50,7 +50,7 @@ public class Database {
     }
 
     /**
-     * loades the courses from the file path specified
+     * loads the courses from the file path specified
      * into the Database, returns true if successful.
      */
     public boolean initialize(String coursesFilePath) {
@@ -81,12 +81,14 @@ public class Database {
      * Registers a student to the system
      */
     public int registerStudent(String studentUsername, String studentPassword){
-        if(isRegisteredToServer(studentUsername) == Consts.IS_REGISTERED){
-            return Consts.IS_REGISTERED;
+        synchronized (registrationLock){
+            if(isRegisteredToServer(studentUsername) == Consts.IS_REGISTERED){
+                return Consts.IS_REGISTERED;
+            }
+            studentsReadWriteLock.writeLock().lock();
+            students.put(studentUsername,studentPassword);
+            studentsReadWriteLock.writeLock().unlock();
         }
-        studentsReadWriteLock.writeLock().lock();
-        students.put(studentUsername,studentUsername);
-        studentsReadWriteLock.writeLock().unlock();
         return Consts.REGISTERED_STUDENT_SUCCESSFULLY;
     }
 
@@ -94,10 +96,14 @@ public class Database {
      * Registers administrator to the system
      */
     public int registerAdministrator(String administratorUsername, String administratorPassword){
-        if(isRegisteredToServer(administratorUsername) == Consts.IS_REGISTERED){
-            return Consts.IS_REGISTERED;
+        synchronized (registrationLock){
+            if(isRegisteredToServer(administratorUsername) == Consts.IS_REGISTERED){
+                return Consts.IS_REGISTERED;
+            }
+            administratorsReadWriteLock.writeLock().lock();
+            administrators.put(administratorUsername,administratorPassword);
+            administratorsReadWriteLock.writeLock().unlock();
         }
-        administrators.put(administratorUsername,administratorPassword);
         return Consts.REGISTERED_ADMINISTRATOR_SUCCESSFULLY;
     }
 
@@ -123,38 +129,54 @@ public class Database {
      * Checks if the user is logged in
      */
     public int isLoggedIn(String username){
-        if(loggedIn.contains(username)){
-            return Consts.IS_LOGGED_IN;
+        loggedInReadWriteLock.readLock().lock();
+        try{
+            if(loggedIn.contains(username)){
+                return Consts.IS_LOGGED_IN;
+            }
+            return Consts.NOT_LOGGED_IN;
         }
-        return Consts.NOT_LOGGED_IN;
+        finally {
+            loggedInReadWriteLock.readLock().unlock();
+        }
     }
 
     /**
      * Login the user if possible
      */
     public int login(String username, String password){
-        if(isLoggedIn(username) == Consts.IS_LOGGED_IN){
-            return Consts.IS_LOGGED_IN;
-        }
-        if (students.containsKey(username)){
-            if (students.get(username).equals(password)) {
-                loggedIn.add(username);
-                return Consts.REGISTERED_STUDENT_SUCCESSFULLY;
-            } else {
-                return Consts.WRONG_PASSWORD;
+        loggedInReadWriteLock.writeLock().lock();
+        studentsReadWriteLock.readLock().lock();
+        administratorsReadWriteLock.readLock().lock();
+        try{
+            if(isLoggedIn(username) == Consts.IS_LOGGED_IN){
+                return Consts.IS_LOGGED_IN;
             }
-        }
-
-        else if (administrators.containsKey(username)){
-                if (administrators.get(username).equals(password)) {
+            if (students.containsKey(username)){
+                if (students.get(username).equals(password)) {
                     loggedIn.add(username);
-                    return Consts.REGISTERED_ADMINISTRATOR_SUCCESSFULLY;
+                    return Consts.LOGGED_IN_STUDENT_SUCCESSFULLY;
                 } else {
                     return Consts.WRONG_PASSWORD;
                 }
-        }
-        else{
-            return Consts.NOT_REGISTERED;
+            }
+            else if (administrators.containsKey(username)){
+                    if (administrators.get(username).equals(password)) {
+                        loggedIn.add(username);
+                        return Consts.LOGGED_IN_ADMINISTRATOR_SUCCESSFULLY;
+                    } else {
+                        return Consts.WRONG_PASSWORD;
+                    }
+            }
+            else {
+                return Consts.NOT_REGISTERED;
+            }
+        }finally {
+            loggedInReadWriteLock.writeLock().unlock();
+            studentsReadWriteLock.readLock().unlock();
+            administratorsReadWriteLock.readLock().unlock();
+
+
         }
     }
 
@@ -162,10 +184,13 @@ public class Database {
      * Logout the user if possible.
      */
     public int logout(String username){
+        loggedInReadWriteLock.writeLock().lock();
         if (isLoggedIn(username) == Consts.NOT_LOGGED_IN){
+            loggedInReadWriteLock.writeLock().unlock();
             return Consts.NOT_LOGGED_IN;
         }
         loggedIn.remove(username);
+        loggedInReadWriteLock.writeLock().unlock();
         return Consts.LOGGED_OUT_SUCCESSFULLY;
     }
 
@@ -173,12 +198,15 @@ public class Database {
      * Check if the user is registered to the kdam courses.
      */
     public int canRegisterToCourse(String studentUsername, Course course){
+        studentCoursesReadWriteLock.readLock().lock();
         int [] courseKdams = course.getKdamCoursesList();
         for (int i = 0 ;i < courseKdams.length; ++i){
             if (!studentCourses.get(studentUsername).contains(courseKdams[i])){
+                studentCoursesReadWriteLock.readLock().unlock();
                 return Consts.DONT_HAVE_KDAMS;
             }
         }
+        studentCoursesReadWriteLock.readLock().unlock();
         return Consts.HAVE_KDAMS;
     }
 
@@ -186,9 +214,12 @@ public class Database {
      * Register the student to the course if possible
      */
     public int registerCourse(String studentUsername, int courseNum){
+        loggedInReadWriteLock.readLock().lock();
         if (isLoggedIn(studentUsername) == Consts.NOT_LOGGED_IN){
+            loggedInReadWriteLock.readLock().unlock();
             return Consts.NOT_LOGGED_IN;
         }
+        loggedInReadWriteLock.readLock().unlock();
         if (!courses.containsKey(courseNum)){
             return Consts.NO_SUCH_COURSE;
         }
@@ -200,7 +231,9 @@ public class Database {
             return Consts.DONT_HAVE_KDAMS;
         }
         course.registerStudent(studentUsername);
+        studentCoursesReadWriteLock.writeLock().lock();
         studentCourses.get(studentUsername).add(courseNum);
+        studentCoursesReadWriteLock.writeLock().unlock();
         return Consts.REGISTERED_COURSE_SUCCESSFULLY;
     }
 
@@ -215,7 +248,7 @@ public class Database {
      * Returns the course stat
      */
     public ArrayList<Object> courseStat(int courseNum){
-        ArrayList<Object> output = new ArrayList<Object>();
+        ArrayList<Object> output = new ArrayList<>();
         Course course = courses.get(courseNum);
         output.add(course.getCourseNum());
         output.add(course.getCourseName());
@@ -229,9 +262,11 @@ public class Database {
      * Returns the student stat
      */
     public ArrayList<Object> studentStat(String studentUsername){
-        ArrayList<Object> output = new ArrayList<Object>();
+        ArrayList<Object> output = new ArrayList<>();
         output.add(studentUsername);
+        studentCoursesReadWriteLock.readLock().lock();
         output.add(studentCourses.get(studentUsername));
+        studentCoursesReadWriteLock.readLock().unlock();
         return output;
     }
 
@@ -239,29 +274,46 @@ public class Database {
      * Checks if a student is registered to a specific course
      */
     public int isRegisteredToCourse(String studentUsername, int courseNum){
-        if (studentCourses.get(studentUsername).contains(courseNum)){
-            return Consts.IS_REGISTERED_TO_COURSE;
+        studentCoursesReadWriteLock.readLock().lock();
+        try{
+            if (studentCourses.get(studentUsername).contains(courseNum)){
+                return Consts.IS_REGISTERED_TO_COURSE;
+            }
+            return Consts.NOT_REGISTERED_TO_COURSE;
+        }finally {
+            studentCoursesReadWriteLock.readLock().unlock();
         }
-        return Consts.NOT_REGISTERED_TO_COURSE;
+
     }
 
     /**
      * Unregisters a student from a specific course if possible
      */
     public int unregisterFromCourse(String studentUsername, int courseNum){
-        if (isRegisteredToCourse(studentUsername,courseNum) == Consts.NOT_REGISTERED_TO_COURSE){
-            return Consts.NOT_REGISTERED_TO_COURSE;
+        studentCoursesReadWriteLock.writeLock().lock();
+        try{
+            if (isRegisteredToCourse(studentUsername,courseNum) == Consts.NOT_REGISTERED_TO_COURSE){
+                return Consts.NOT_REGISTERED_TO_COURSE;
+            }
+            studentCourses.get(studentUsername).remove(courseNum);
+            courses.get(courseNum).unregisterStudent(studentUsername);
+            return Consts.UNREGISTERED_FROM_COURSE_SUCCESSFULLY;
+        }finally {
+            studentCoursesReadWriteLock.writeLock().unlock();
         }
-        studentCourses.get(studentUsername).remove(courseNum);
-        courses.get(courseNum).unregisterStudent(studentUsername);
-        return Consts.UNREGISTERED_FROM_COURSE_SUCCESSFULLY;
     }
 
     /**
      * Returns the courses the student is registered to
      */
     public ArrayList<Integer> getStudentCourses(String studentUsername){
-        return studentCourses.get(studentUsername);
+        studentCoursesReadWriteLock.readLock().lock();
+        try{
+            return studentCourses.get(studentUsername);
+        }finally {
+            studentCoursesReadWriteLock.readLock().unlock();
+        }
+
     }
 
 

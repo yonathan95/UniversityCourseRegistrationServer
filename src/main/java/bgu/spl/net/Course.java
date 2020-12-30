@@ -17,9 +17,10 @@ public class Course {
         registeredStudents = new TreeSet<>();
     }
 
-    public void registerStudent(String studentUsername){
+    public synchronized void registerStudent(String studentUsername){
         registeredStudents.add(studentUsername);
     }
+
     public int getCourseNum() {
         return courseNum;
     }
@@ -36,19 +37,11 @@ public class Course {
         return numOfMaxStudents;
     }
 
-    public void setNumOfMaxStudents(int numOfMaxStudents) {
-        this.numOfMaxStudents = numOfMaxStudents;
-    }
-
-    public TreeSet<String> getRegisteredStudents() {
+    public synchronized TreeSet<String> getRegisteredStudents() {
         return registeredStudents;
     }
 
-    public void setRegisteredStudents(TreeSet<String> registeredStudents) {
-        this.registeredStudents = registeredStudents;
-    }
-
-    public void unregisterStudent(String studentUsername) {
+    public synchronized void unregisterStudent(String studentUsername) {
         registeredStudents.remove(studentUsername);
     }
 }

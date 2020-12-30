@@ -29,5 +29,7 @@ public class Consts {
     public static final int IS_REGISTERED_TO_COURSE = 13;
     public static final int NOT_REGISTERED_TO_COURSE = 14;
     public static final int UNREGISTERED_FROM_COURSE_SUCCESSFULLY = 15;
+    public static final int LOGGED_IN_STUDENT_SUCCESSFULLY = 16;
+    public static final int LOGGED_IN_ADMINISTRATOR_SUCCESSFULLY = 17;
     public static final short NOT_DECODE_YET = -1;
 }
