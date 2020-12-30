@@ -1,19 +1,33 @@
 package bgu.spl.net;
 
-public class CourseNumberMessage {
+import bgu.spl.net.api.OpMessage;
+
+public class CourseNumberMessage implements OpMessage<Short> {
+
     private Short Opcode;
-    private short courseNumber;
+    private int courseNumber;
 
 
-    public CourseNumberMessage(Short _Opcode, short _courseNumber){
+    public CourseNumberMessage(Short _Opcode, int _courseNumber){
         Opcode = _Opcode;
         courseNumber = _courseNumber;
+    }
+    public CourseNumberMessage(){
+        Opcode = null;
+        courseNumber = -1;
     }
     public Short getOpcode() {
         return Opcode;
     }
 
-    public short getCourseNumber() {
+    public int getCourseNumber() {
         return courseNumber;
+    }
+    public void setOpcode(Short opcode) {
+        Opcode = opcode;
+    }
+
+    public void setCourseNumber(int courseNumber) {
+        this.courseNumber = courseNumber;
     }
 }

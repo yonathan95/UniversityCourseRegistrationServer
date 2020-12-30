@@ -10,12 +10,14 @@ import java.util.*;
 public class MessageEncoderDecoderImpl <T>  implements MessageEncoderDecoder<OpMessage>{
     private byte[] bytes = new byte[1 << 10];
     private int len = 0;
-   // private CToSMessage output = new CToSMessage();
     private RegisterLoginMessage registerLoginMessage = new RegisterLoginMessage();
-    private String[] stringArr = new String[2];
-    private short Opcode = -1;
+    private StudentStatMessage studentStatMessage = new StudentStatMessage();
+    private CourseNumberMessage courseNumberMessage = new CourseNumberMessage();
+    private OpMessage message;
+    private short Opcode = Consts.NOT_DECODE_YET;
     private int numberOfZero = 0;
     private boolean endOfMessage = false;
+    private String [] stringArr = new String[2];
     private short[] OpcodeOfTwoStringMessage ={Consts.ADMINREG,Consts.STUDENTREG,Consts.LOGIN};
     private short[] OpcodeOfOneStringMessage ={Consts.STUDENTSTAT};
     private short[] OpcodeOfOneShortMessage = {Consts.COURSEREG,Consts.KDAMCHECK,Consts.COURSESTAT,Consts.ISREGISTERED,Consts.UNREGISTER};
@@ -24,17 +26,15 @@ public class MessageEncoderDecoderImpl <T>  implements MessageEncoderDecoder<OpM
 
     @Override
     public OpMessage decodeNextByte(byte nextByte) {
-        if(Opcode == -1){
+        if(Opcode == Consts.NOT_DECODE_YET){
             if(len == 1){
                 pushByte(nextByte);
                 Opcode = bytesToShort(bytes);
                 len = 0;
-                //output.setOpcode(Opcode);
                 if(Opcode == Consts.LOGOUT | Opcode == Consts.MYCOURSES) {
-
-                    LogoutMyCoursesMessages output = new LogoutMyCoursesMessages(Opcode);
-                    Opcode = -1;
-                    return output;
+                    message = new LogoutMyCoursesMessages(Opcode);
+                    Opcode = Consts.NOT_DECODE_YET;
+                    return message;
                 }
                 return null;
             }
@@ -59,7 +59,8 @@ public class MessageEncoderDecoderImpl <T>  implements MessageEncoderDecoder<OpM
             return null;
         }
         else{
-            return output;
+            Opcode = Consts.NOT_DECODE_YET;
+            return message;
         }
 
     }
@@ -67,19 +68,21 @@ public class MessageEncoderDecoderImpl <T>  implements MessageEncoderDecoder<OpM
         if(nextByte == '\0'){
             numberOfZero++;
             if(numberOfZero == 2) {
-                stringArr[1] = popString();
+                registerLoginMessage.setPassword(popString());
+                registerLoginMessage.setOpcode(Opcode);
+                message = registerLoginMessage;
                 endOfMessage = true;
             }
             else{
-                //output.addToStringData(popString());
-                stringArr[0] = popString();
+                registerLoginMessage.setUserName(popString());
             }
         }
     }
 
     private void decodeNextByteOneStringMessage(byte nextByte){
         if(nextByte == '\0'){
-            output.addToStringData(popString());
+            studentStatMessage.setUserName(popString());
+            message = studentStatMessage;
             endOfMessage = true;
         }
     }
@@ -88,20 +91,22 @@ public class MessageEncoderDecoderImpl <T>  implements MessageEncoderDecoder<OpM
         if(len == 2){
             pushByte(nextByte);
             bytes[0] = bytes[1];
-            bytes[1] = bytes[2]; // TODO dell comnnt , did this so the space byte will be dell.
-            output.setNumberData(bytesToShort(bytes));
+            bytes[1] = bytes[2];
+            courseNumberMessage.setCourseNumber(bytesToShort(bytes));
+            courseNumberMessage.setOpcode(Opcode);
+            message = courseNumberMessage;
+            len = 0;
             endOfMessage = true;
         }
     }
 
-
     @Override
     public byte[] encode(OpMessage message) {
-        if(Opcode == Consts.ACK){
+        if(message.getOpcode().equals(Consts.ACK)){
             AckMessage msg = (AckMessage) message;
             byte [] OpcodeBytes = shortToBytes(msg.getOpcode());
             byte [] MessageOpcodeBytes = shortToBytes(msg.getMessageOpcode());
-            byte [] stringTobePrintedBytes = (msg.getStr() + "\0").getBytes(); // TODo to add Space bye between the bytes..
+            byte [] stringTobePrintedBytes = (msg.getStr() + "\0").getBytes(); // TODo to add Space byte between the bytes..
             return append(OpcodeBytes,append(MessageOpcodeBytes,stringTobePrintedBytes));
 
         }
@@ -137,13 +142,13 @@ public class MessageEncoderDecoderImpl <T>  implements MessageEncoderDecoder<OpM
         bytes[len++] = nextByte;
      }
 
-    public short bytesToShort (byte[] byteArr){
+    private short bytesToShort (byte[] byteArr){
         short result = (short)((byteArr[0] & 0Xff) << 8);
         result += (short)(byteArr[1] & 0Xff);
         return result;
     }
 
-    public byte[] shortToBytes(short num){
+    private byte[] shortToBytes(short num){
         byte[] bytesArr =  new byte[2];
         bytesArr[0] = (byte)((num >> 8) & 0xFF);
         bytesArr[1] = (byte)(num & 0xFF);

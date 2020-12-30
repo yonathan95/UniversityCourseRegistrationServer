@@ -25,8 +25,9 @@ public class Consts {
     public static final short ISREGISTERED = 9;
     public static final short UNREGISTER = 10;
     public static final short MYCOURSES = 11;
-    public static final short ACK = 12;
+    public static final Short ACK = 12;
     public static final int IS_REGISTERED_TO_COURSE = 13;
     public static final int NOT_REGISTERED_TO_COURSE = 14;
     public static final int UNREGISTERED_FROM_COURSE_SUCCESSFULLY = 15;
+    public static final short NOT_DECODE_YET = -1;
 }

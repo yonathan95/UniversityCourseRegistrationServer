@@ -10,6 +10,9 @@ public class StudentStatMessage implements OpMessage<Short> {
     public StudentStatMessage(String _userName){
         userName = _userName;
     }
+    public StudentStatMessage(){
+        userName = null;
+    }
     public Short getOpcode() {
         return Opcode;
     }
@@ -18,4 +21,7 @@ public class StudentStatMessage implements OpMessage<Short> {
         return userName;
     }
 
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
 }
