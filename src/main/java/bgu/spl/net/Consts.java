@@ -14,4 +14,7 @@ public class Consts {
     public static final int REGISTERED_COURSE_SUCCESSFULLY = 10;
     public static final int LOGGED_OUT_SUCCESSFULLY = 11;
     public static final int IS_REGISTERED = 12;
+    public static final int IS_REGISTERED_TO_COURSE = 13;
+    public static final int NOT_REGISTERED_TO_COURSE = 14;
+    public static final int UNREGISTERED_FROM_COURSE_SUCCESSFULLY = 15;
 }

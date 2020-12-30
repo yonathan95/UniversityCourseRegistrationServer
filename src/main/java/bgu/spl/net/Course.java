@@ -47,4 +47,8 @@ public class Course {
     public void setRegisteredStudents(TreeSet<String> registeredStudents) {
         this.registeredStudents = registeredStudents;
     }
+
+    public void unregisterStudent(String studentUsername) {
+        registeredStudents.remove(studentUsername);
+    }
 }
