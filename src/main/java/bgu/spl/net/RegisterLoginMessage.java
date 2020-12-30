@@ -1,15 +1,23 @@
 package bgu.spl.net;
 
-public class RegisterLoginMessage {
+import bgu.spl.net.api.OpMessage;
+
+public class RegisterLoginMessage implements OpMessage<Short> {
+    private Short Opcode;
     private String userName;
     private String password;
 
+
+
     public RegisterLoginMessage() {
-        super();
+        Opcode = -1;
         userName = null;
         password = null;
     }
 
+    public void setOpcode(short opcode) {
+        Opcode = opcode;
+    }
 
     public void setUserName(String userName) {
         this.userName = userName;
@@ -26,6 +34,9 @@ public class RegisterLoginMessage {
 
     public String getPassword() {
         return password;
+    }
+    public Short getOpcode() {
+        return Opcode;
     }
 
 }
