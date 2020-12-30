@@ -5,6 +5,8 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+
+
 public class MessageEncoderDecoderImpl implements MessageEncoderDecoder{
     private byte[] bytes = new byte[1 << 10];
     private int len = 0;
@@ -12,28 +14,38 @@ public class MessageEncoderDecoderImpl implements MessageEncoderDecoder{
     private short Opcode = -1;
     private int numberOfZero = 0;
     private boolean endOfMessage = false;
+    private short[] OpcodeOfTwoStringMessage ={Consts.ADMINREG,Consts.STUDENTREG,Consts.LOGIN};
+    private short[] OpcodeOfOneStringMessage ={Consts.STUDENTSTAT};
+    private short[] OpcodeOfOneShortMessage = {Consts.COURSEREG,Consts.KDAMCHECK,Consts.COURSESTAT,Consts.ISREGISTERED,Consts.UNREGISTER};
+    private boolean firstZero = true;
+
+
     @Override
     public Object decodeNextByte(byte nextByte) {
         if(Opcode == -1){
-            if(len == 2){
+            if(len == 1){
+                pushByte(nextByte);
                 Opcode = bytesToShort(bytes);
                 len = 0;
                 output.setOpcode(Opcode);
+                if(Opcode == Consts.LOGOUT | Opcode == Consts.MYCOURSES) {
+                    return output;
+                }
                 return null;
             }
         }
         else{
-            if(Opcode == 1 | Opcode == 2 | Opcode == 3){
+            if(contains(OpcodeOfTwoStringMessage,Opcode)){
                 decodeNextByteTwoStringMessage(nextByte);
+                if(numberOfZero == 1 & (firstZero)){
+                    firstZero = false;
+                    return null;
+                }
             }
-            else if(Opcode == 8){
+            else if(contains(OpcodeOfOneStringMessage,Opcode)){
                 decodeNextByteOneStringMessage(nextByte);
             }
-            else if(Opcode == 4 | Opcode == 11){
-                endOfMessage = true;
-            }
-            else if((Opcode < 11 & Opcode > 4) & Opcode != 8 ){
-
+            else if(contains(OpcodeOfOneShortMessage,Opcode)){
                 decodeNextByteOneIntMessage(nextByte);
             }
         }
@@ -48,7 +60,7 @@ public class MessageEncoderDecoderImpl implements MessageEncoderDecoder{
     }
     private void decodeNextByteTwoStringMessage(byte nextByte){
         if(nextByte == '\0'){
-            numberOfZero ++;
+            numberOfZero++;
             output.addToStringData(popString());
             if(numberOfZero == 2) {
                 endOfMessage = true;
@@ -65,6 +77,9 @@ public class MessageEncoderDecoderImpl implements MessageEncoderDecoder{
 
     private void decodeNextByteOneIntMessage(byte nextByte){
         if(len == 2){
+            pushByte(nextByte);
+            bytes[0] = bytes[1];
+            bytes[1] = bytes[2]; // TODO dell comnnt , did this so the space byte will be dell.
             output.setNumberData(bytesToShort(bytes));
             endOfMessage = true;
         }
@@ -73,18 +88,18 @@ public class MessageEncoderDecoderImpl implements MessageEncoderDecoder{
 
     @Override
     public byte[] encode(Object message) {
-        if(Opcode == 12){
+        if(Opcode == Consts.ACK){
             AckMessage msg = (AckMessage) message;
             byte [] OpcodeBytes = shortToBytes(msg.getOpcode());
             byte [] MessageOpcodeBytes = shortToBytes(msg.getMessageOpcode());
-            byte [] stringTobePrintedBytes = (msg.getStr() + "\0").getBytes();
+            byte [] stringTobePrintedBytes = (msg.getStr() + "\0").getBytes(); // TODo to add Space bye between the bytes..
             return append(OpcodeBytes,append(MessageOpcodeBytes,stringTobePrintedBytes));
 
         }
         else{
             ErrorMessage err = (ErrorMessage) message;
             byte [] OpcodeBytes = shortToBytes(err.getOpcode());
-            byte [] MessageOpcodeBytes = shortToBytes(err.getMessageOpcode());
+            byte [] MessageOpcodeBytes = shortToBytes(err.getMessageOpcode()); // TODO add space byte between the arryes
             return append(OpcodeBytes,MessageOpcodeBytes);
         }
 
@@ -101,7 +116,7 @@ public class MessageEncoderDecoderImpl implements MessageEncoderDecoder{
     }
 
     private String popString(){
-        String result = new String(bytes,0,len, StandardCharsets.UTF_8);
+        String result = new String(bytes,1,len, StandardCharsets.UTF_8); // TOdo DELL THE COOMENT start from one so the we wont get the space to the strings
         len = 0;
         return result;
     }
@@ -124,5 +139,13 @@ public class MessageEncoderDecoderImpl implements MessageEncoderDecoder{
         bytesArr[0] = (byte)((num >> 8) & 0xFF);
         bytesArr[1] = (byte)(num & 0xFF);
         return bytesArr;
+    }
+    private boolean contains (short[] shortArr,short Opcode){
+        for (short i = 0; i <shortArr.length ; i++){
+            if(shortArr[i] == Opcode){
+                return true;
+            }
+        }
+        return false;
     }
 }

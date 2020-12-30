@@ -14,4 +14,18 @@ public class Consts {
     public static final int REGISTERED_COURSE_SUCCESSFULLY = 10;
     public static final int LOGGED_OUT_SUCCESSFULLY = 11;
     public static final int IS_REGISTERED = 12;
+    public static final short ADMINREG = 1;
+    public static final short STUDENTREG = 2;
+    public static final short LOGIN = 3;
+    public static final short LOGOUT = 4;
+    public static final short COURSEREG = 5;
+    public static final short KDAMCHECK = 6;
+    public static final short COURSESTAT = 7;
+    public static final short STUDENTSTAT = 8;
+    public static final short ISREGISTERED = 9;
+    public static final short UNREGISTER = 10;
+    public static final short MYCOURSES = 11;
+    public static final short ACK = 12;
+
+
 }
