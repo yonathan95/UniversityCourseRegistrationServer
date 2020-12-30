@@ -54,7 +54,7 @@ public class Database {
                 String[] line = coursesFile.get(i).split("\\|");
                 int  courseNum = Integer.parseInt(line[0]);
                 String courseName = line[1];
-                int [] kdamCoursesList;
+                int[] kdamCoursesList;
                 if (line[2].equals("[]")){
                     kdamCoursesList = new int[0];
                 }

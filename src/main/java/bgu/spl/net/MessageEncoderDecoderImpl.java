@@ -7,7 +7,7 @@ import java.util.*;
 
 
 
-public class MessageEncoderDecoderImpl implements MessageEncoderDecoder{
+public class MessageEncoderDecoderImpl<T> implements MessageEncoderDecoder<T>{
     private byte[] bytes = new byte[1 << 10];
     private int len = 0;
     private CToSMessage output = new CToSMessage();
@@ -21,7 +21,7 @@ public class MessageEncoderDecoderImpl implements MessageEncoderDecoder{
 
 
     @Override
-    public Object decodeNextByte(byte nextByte) {
+    public T decodeNextByte(byte nextByte) {
         if(Opcode == -1){
             if(len == 1){
                 pushByte(nextByte);
@@ -29,7 +29,7 @@ public class MessageEncoderDecoderImpl implements MessageEncoderDecoder{
                 len = 0;
                 output.setOpcode(Opcode);
                 if(Opcode == Consts.LOGOUT | Opcode == Consts.MYCOURSES) {
-                    return output;
+                    return null;
                 }
                 return null;
             }
@@ -54,7 +54,7 @@ public class MessageEncoderDecoderImpl implements MessageEncoderDecoder{
             return null;
         }
         else{
-            return output;
+            return null;
         }
 
     }
@@ -87,7 +87,7 @@ public class MessageEncoderDecoderImpl implements MessageEncoderDecoder{
 
 
     @Override
-    public byte[] encode(Object message) {
+    public byte[] encode(T message) {
         if(Opcode == Consts.ACK){
             AckMessage msg = (AckMessage) message;
             byte [] OpcodeBytes = shortToBytes(msg.getOpcode());

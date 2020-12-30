@@ -2,14 +2,20 @@ package bgu.spl.net;
 
 import bgu.spl.net.api.MessagingProtocol;
 
-public class MessagingProtocolImpl implements MessagingProtocol {
+public class MessagingProtocolImpl<T> implements MessagingProtocol<T> {
+    private boolean shouldTerminate;
+
+    public MessagingProtocolImpl(Database database){
+        shouldTerminate = false;
+    }
+
     @Override
-    public Object process(Object msg) {
+    public T process(T msg) {
         return null;
     }
 
     @Override
     public boolean shouldTerminate() {
-        return false;
+        return shouldTerminate;
     }
 }
