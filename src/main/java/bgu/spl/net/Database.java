@@ -3,6 +3,8 @@ package bgu.spl.net;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Stream;
 
 /**
@@ -19,6 +21,10 @@ public class Database {
     private HashMap<String,ArrayList<Integer>> studentCourses;
     private HashMap<Integer,Course> courses;
     private ArrayList<String> loggedIn;
+    private final ReentrantReadWriteLock studentsReadWriteLock = new ReentrantReadWriteLock();
+    private final ReentrantReadWriteLock administratorsReadWriteLock = new ReentrantReadWriteLock();
+    private final ReentrantReadWriteLock studentCoursesReadWriteLock = new ReentrantReadWriteLock();
+    private final ReentrantReadWriteLock loggedInReadWriteLock = new ReentrantReadWriteLock();
 
     private static class DatabaseHolder{
         private static Database instance = new Database();
@@ -78,7 +84,9 @@ public class Database {
         if(isRegisteredToServer(studentUsername) == Consts.IS_REGISTERED){
             return Consts.IS_REGISTERED;
         }
+        studentsReadWriteLock.writeLock().lock();
         students.put(studentUsername,studentUsername);
+        studentsReadWriteLock.writeLock().unlock();
         return Consts.REGISTERED_STUDENT_SUCCESSFULLY;
     }
 
@@ -97,10 +105,18 @@ public class Database {
      * Checks if the user is Registered
      */
     public int isRegisteredToServer(String username){
-        if(students.containsKey(username)| administrators.containsKey(username)){
-            return Consts.IS_REGISTERED;
+        studentsReadWriteLock.readLock().lock();
+        administratorsReadWriteLock.readLock().lock();
+        try{
+            if(students.containsKey(username)| administrators.containsKey(username)){
+                return Consts.IS_REGISTERED;
+            }
+            return Consts.NOT_REGISTERED;
+        }finally {
+            studentsReadWriteLock.readLock().unlock();
+            administratorsReadWriteLock.readLock().unlock();
         }
-        return Consts.NOT_REGISTERED;
+
     }
 
     /**
