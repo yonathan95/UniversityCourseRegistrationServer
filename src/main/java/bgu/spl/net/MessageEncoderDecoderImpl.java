@@ -1,16 +1,18 @@
 package bgu.spl.net;
 import bgu.spl.net.api.MessageEncoderDecoder;
+import bgu.spl.net.api.OpMessage;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 
-
-public class MessageEncoderDecoderImpl implements MessageEncoderDecoder{
+public class MessageEncoderDecoderImpl <T>  implements MessageEncoderDecoder<OpMessage>{
     private byte[] bytes = new byte[1 << 10];
     private int len = 0;
-    private CToSMessage output = new CToSMessage();
+   // private CToSMessage output = new CToSMessage();
+    private RegisterLoginMessage registerLoginMessage = new RegisterLoginMessage();
+    private String[] stringArr = new String[2];
     private short Opcode = -1;
     private int numberOfZero = 0;
     private boolean endOfMessage = false;
@@ -21,14 +23,17 @@ public class MessageEncoderDecoderImpl implements MessageEncoderDecoder{
 
 
     @Override
-    public Object decodeNextByte(byte nextByte) {
+    public OpMessage decodeNextByte(byte nextByte) {
         if(Opcode == -1){
             if(len == 1){
                 pushByte(nextByte);
                 Opcode = bytesToShort(bytes);
                 len = 0;
-                output.setOpcode(Opcode);
+                //output.setOpcode(Opcode);
                 if(Opcode == Consts.LOGOUT | Opcode == Consts.MYCOURSES) {
+
+                    LogoutMyCoursesMessages output = new LogoutMyCoursesMessages(Opcode);
+                    Opcode = -1;
                     return output;
                 }
                 return null;
@@ -61,9 +66,13 @@ public class MessageEncoderDecoderImpl implements MessageEncoderDecoder{
     private void decodeNextByteTwoStringMessage(byte nextByte){
         if(nextByte == '\0'){
             numberOfZero++;
-            output.addToStringData(popString());
             if(numberOfZero == 2) {
+                stringArr[1] = popString();
                 endOfMessage = true;
+            }
+            else{
+                //output.addToStringData(popString());
+                stringArr[0] = popString();
             }
         }
     }
@@ -87,7 +96,7 @@ public class MessageEncoderDecoderImpl implements MessageEncoderDecoder{
 
 
     @Override
-    public byte[] encode(Object message) {
+    public byte[] encode(OpMessage message) {
         if(Opcode == Consts.ACK){
             AckMessage msg = (AckMessage) message;
             byte [] OpcodeBytes = shortToBytes(msg.getOpcode());
