@@ -54,7 +54,7 @@ public class Database {
                 String[] line = coursesFile.get(i).split("\\|");
                 int  courseNum = Integer.parseInt(line[0]);
                 String courseName = line[1];
-                int [] kdamCoursesList;
+                int[] kdamCoursesList;
                 if (line[2].equals("[]")){
                     kdamCoursesList = new int[0];
                 }
@@ -75,7 +75,7 @@ public class Database {
      * Registers a student to the system
      */
     public int registerStudent(String studentUsername, String studentPassword){
-        if(isRegistered(studentUsername) == Consts.IS_REGISTERED){
+        if(isRegisteredToServer(studentUsername) == Consts.IS_REGISTERED){
             return Consts.IS_REGISTERED;
         }
         students.put(studentUsername,studentUsername);
@@ -86,7 +86,7 @@ public class Database {
      * Registers administrator to the system
      */
     public int registerAdministrator(String administratorUsername, String administratorPassword){
-        if(isRegistered(administratorUsername) == Consts.IS_REGISTERED){
+        if(isRegisteredToServer(administratorUsername) == Consts.IS_REGISTERED){
             return Consts.IS_REGISTERED;
         }
         administrators.put(administratorUsername,administratorPassword);
@@ -96,7 +96,7 @@ public class Database {
     /**
      * Checks if the user is Registered
      */
-    public int isRegistered(String username){
+    public int isRegisteredToServer(String username){
         if(students.containsKey(username)| administrators.containsKey(username)){
             return Consts.IS_REGISTERED;
         }
@@ -217,6 +217,35 @@ public class Database {
         output.add(studentUsername);
         output.add(studentCourses.get(studentUsername));
         return output;
+    }
+
+    /**
+     * Checks if a student is registered to a specific course
+     */
+    public int isRegisteredToCourse(String studentUsername, int courseNum){
+        if (studentCourses.get(studentUsername).contains(courseNum)){
+            return Consts.IS_REGISTERED_TO_COURSE;
+        }
+        return Consts.NOT_REGISTERED_TO_COURSE;
+    }
+
+    /**
+     * Unregisters a student from a specific course if possible
+     */
+    public int unregisterFromCourse(String studentUsername, int courseNum){
+        if (isRegisteredToCourse(studentUsername,courseNum) == Consts.NOT_REGISTERED_TO_COURSE){
+            return Consts.NOT_REGISTERED_TO_COURSE;
+        }
+        studentCourses.get(studentUsername).remove(courseNum);
+        courses.get(courseNum).unregisterStudent(studentUsername);
+        return Consts.UNREGISTERED_FROM_COURSE_SUCCESSFULLY;
+    }
+
+    /**
+     * Returns the courses the student is registered to
+     */
+    public ArrayList<Integer> getStudentCourses(String studentUsername){
+        return studentCourses.get(studentUsername);
     }
 
 
