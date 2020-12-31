@@ -88,10 +88,8 @@ public class MessageEncoderDecoderImpl <T>  implements MessageEncoderDecoder<OpM
     }
 
     private void decodeNextByteOneIntMessage(byte nextByte){
-        if(len == 2){
+        if(len == 1){
             pushByte(nextByte);
-            bytes[0] = bytes[1];
-            bytes[1] = bytes[2]; // delete the first byte because it is space
             courseNumberMessage.setCourseNumber(bytesToShort(bytes));
             courseNumberMessage.setOpcode(Opcode);
             message = courseNumberMessage;
@@ -130,7 +128,7 @@ public class MessageEncoderDecoderImpl <T>  implements MessageEncoderDecoder<OpM
     }
 
     private String popString(){
-        String result = new String(bytes,1,len, StandardCharsets.UTF_8); //  start from one so the we wont get the space to the strings
+        String result = new String(bytes,0,len, StandardCharsets.UTF_8);
         len = 0;
         return result;
     }
