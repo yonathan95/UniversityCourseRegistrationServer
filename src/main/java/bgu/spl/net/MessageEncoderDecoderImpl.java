@@ -104,14 +104,14 @@ public class MessageEncoderDecoderImpl <T>  implements MessageEncoderDecoder<OpM
             AckMessage msg = (AckMessage) message;
             byte [] OpcodeBytes = shortToBytes(msg.getOpcode());
             byte [] MessageOpcodeBytes = shortToBytes(msg.getMessageOpcode());
-            byte [] stringTobePrintedBytes = (msg.getStr() + "\0").getBytes(); // TODo to add Space byte between the bytes..
+            byte [] stringTobePrintedBytes = (msg.getStr() + "\0").getBytes();
             return append(OpcodeBytes,append(MessageOpcodeBytes,stringTobePrintedBytes));
 
         }
         else{
             ErrorMessage err = (ErrorMessage) message;
             byte [] OpcodeBytes = shortToBytes(err.getOpcode());
-            byte [] MessageOpcodeBytes = shortToBytes(err.getMessageOpcode()); // TODO add space byte between the arryes
+            byte [] MessageOpcodeBytes = shortToBytes(err.getMessageOpcode());
             return append(OpcodeBytes,MessageOpcodeBytes);
         }
 
