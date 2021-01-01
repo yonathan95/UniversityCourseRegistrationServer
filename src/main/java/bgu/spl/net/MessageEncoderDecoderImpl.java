@@ -89,10 +89,8 @@ public class MessageEncoderDecoderImpl <T>  implements MessageEncoderDecoder<OpM
     }
 
     private void decodeNextByteOneIntMessage(byte nextByte){
-        if(len == 2){
+        if(len == 1){
             pushByte(nextByte);
-            bytes[0] = bytes[1];
-            bytes[1] = bytes[2];
             courseNumberMessage.setCourseNumber(bytesToShort(bytes));
             courseNumberMessage.setOpcode(Opcode);
             message = courseNumberMessage;
@@ -107,14 +105,14 @@ public class MessageEncoderDecoderImpl <T>  implements MessageEncoderDecoder<OpM
             AckMessage msg = (AckMessage) message;
             byte [] OpcodeBytes = shortToBytes(msg.getOpcode());
             byte [] MessageOpcodeBytes = shortToBytes(msg.getMessageOpcode());
-            byte [] stringTobePrintedBytes = (msg.getStr() + "\0").getBytes(); // TODo to add Space byte between the bytes..
+            byte [] stringTobePrintedBytes = (msg.getStr() + "\0").getBytes();
             return append(OpcodeBytes,append(MessageOpcodeBytes,stringTobePrintedBytes));
 
         }
         else{
             ErrorMessage err = (ErrorMessage) message;
             byte [] OpcodeBytes = shortToBytes(err.getOpcode());
-            byte [] MessageOpcodeBytes = shortToBytes(err.getMessageOpcode()); // TODO add space byte between the arryes
+            byte [] MessageOpcodeBytes = shortToBytes(err.getMessageOpcode());
             return append(OpcodeBytes,MessageOpcodeBytes);
         }
 
@@ -131,7 +129,7 @@ public class MessageEncoderDecoderImpl <T>  implements MessageEncoderDecoder<OpM
     }
 
     private String popString(){
-        String result = new String(bytes,1,len, StandardCharsets.UTF_8); // TOdo DELL THE COOMENT start from one so the we wont get the space to the strings
+        String result = new String(bytes,0,len, StandardCharsets.UTF_8);
         len = 0;
         return result;
     }
