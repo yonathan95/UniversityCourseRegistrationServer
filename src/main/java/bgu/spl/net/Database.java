@@ -220,6 +220,9 @@ public class Database {
             return Consts.NOT_LOGGED_IN;
         }
         loggedInReadWriteLock.readLock().unlock();
+        if (isRegisteredToCourse(studentUsername,courseNum) == Consts.IS_REGISTERED_TO_COURSE){
+            return Consts.IS_REGISTERED_TO_COURSE;
+        }
         if (!courses.containsKey(courseNum)){
             return Consts.NO_SUCH_COURSE;
         }
@@ -247,15 +250,23 @@ public class Database {
     /**
      * Returns the course stat
      */
-    public ArrayList<Object> courseStat(int courseNum){
-        ArrayList<Object> output = new ArrayList<>();
-        Course course = courses.get(courseNum);
-        output.add(course.getCourseNum());
-        output.add(course.getCourseName());
-        output.add(course.getKdamCoursesList());
-        output.add(course.getNumOfMaxStudents());
-        output.add(course.getRegisteredStudents().size());
-        return output;
+    public int getCourseNum(int courseNum){
+        return courses.get(courseNum).getCourseNum();
+    }
+
+    /**
+     * Returns the course stat
+     */
+    public String getCourseName(int courseNum){
+        return courses.get(courseNum).getCourseName();
+    }
+
+    public int getNumOfMaxStudents(int courseNum){
+        return courses.get(courseNum).getNumOfMaxStudents();
+    }
+
+    public int getRegisteredStudentsSize(int courseNum){
+        return courses.get(courseNum).getRegisteredStudents().size();
     }
 
     /**

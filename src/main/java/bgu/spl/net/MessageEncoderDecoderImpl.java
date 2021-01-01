@@ -24,6 +24,7 @@ public class MessageEncoderDecoderImpl <T>  implements MessageEncoderDecoder<OpM
     private boolean firstZero = true;
 
 
+
     @Override
     public OpMessage decodeNextByte(byte nextByte) {
         if(Opcode == Consts.NOT_DECODE_YET){

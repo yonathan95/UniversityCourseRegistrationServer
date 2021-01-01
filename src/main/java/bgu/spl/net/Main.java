@@ -13,7 +13,7 @@ public class Main {
                 Runtime.getRuntime().availableProcessors(),
                 7777, //port
                 () ->  new MessagingProtocolImpl(database), //protocol factory
-                ObjectEncoderDecoder::new //message encoder decoder factory
+                () -> new MessageEncoderDecoderImpl<>()//message encoder decoder factory
         ).serve();
     }
 }
