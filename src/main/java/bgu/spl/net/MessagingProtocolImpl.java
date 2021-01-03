@@ -55,7 +55,6 @@ public class MessagingProtocolImpl<T> implements MessagingProtocol<OpMessage<Sho
         instructions.put(Consts.LOGOUT,(database, msg)->{
             if (!isLoggedIn) return new ErrorMessage(msg.getOpcode());
             LogoutMyCoursesMessages message = (LogoutMyCoursesMessages)msg;
-            int loginResult = database.logout(username);
             if (database.logout(username) == Consts.LOGGED_OUT_SUCCESSFULLY) {
                 isLoggedIn = false;
                 shouldTerminate = true;
@@ -70,7 +69,6 @@ public class MessagingProtocolImpl<T> implements MessagingProtocol<OpMessage<Sho
 
             CourseNumberMessage message = (CourseNumberMessage)msg;
             int ans = database.registerCourse(username,message.getCourseNumber());
-            System.out.println("the answer is: " + ans);
             if (ans == Consts.REGISTERED_COURSE_SUCCESSFULLY){
                 return new AckMessage(message.getOpcode(),"");
             }

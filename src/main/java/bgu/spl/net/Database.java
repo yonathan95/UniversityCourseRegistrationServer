@@ -309,7 +309,7 @@ public class Database {
             if (isRegisteredToCourse(studentUsername,courseNum) == Consts.NOT_REGISTERED_TO_COURSE){
                 return Consts.NOT_REGISTERED_TO_COURSE;
             }
-            studentCourses.get(studentUsername).remove(courseNum);
+            studentCourses.get(studentUsername).remove(studentCourses.get(studentUsername).indexOf(courseNum));
             courses.get(courseNum).unregisterStudent(studentUsername);
             return Consts.UNREGISTERED_FROM_COURSE_SUCCESSFULLY;
         }finally {
