@@ -17,7 +17,6 @@ public class MessageEncoderDecoderImpl <T>  implements MessageEncoderDecoder<OpM
     private short Opcode = Consts.NOT_DECODE_YET;
     private int numberOfZero = 0;
     private boolean endOfMessage = false;
-    private String [] stringArr = new String[2];
     private short[] OpcodeOfTwoStringMessage ={Consts.ADMINREG,Consts.STUDENTREG,Consts.LOGIN};
     private short[] OpcodeOfOneStringMessage ={Consts.STUDENTSTAT};
     private short[] OpcodeOfOneShortMessage = {Consts.COURSEREG,Consts.KDAMCHECK,Consts.COURSESTAT,Consts.ISREGISTERED,Consts.UNREGISTER};
@@ -60,7 +59,7 @@ public class MessageEncoderDecoderImpl <T>  implements MessageEncoderDecoder<OpM
             return null;
         }
         else{
-            Opcode = Consts.NOT_DECODE_YET;
+            clear();
             return message;
         }
 
@@ -160,5 +159,16 @@ public class MessageEncoderDecoderImpl <T>  implements MessageEncoderDecoder<OpM
             }
         }
         return false;
+    }
+    private void clear(){
+        len = 0;
+        registerLoginMessage = new RegisterLoginMessage();
+        studentStatMessage = new StudentStatMessage();
+        courseNumberMessage = new CourseNumberMessage();
+        Opcode = Consts.NOT_DECODE_YET;
+        numberOfZero = 0;
+        endOfMessage = false;
+        firstZero = true;
+
     }
 }
