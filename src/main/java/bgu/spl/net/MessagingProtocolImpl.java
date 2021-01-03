@@ -6,6 +6,7 @@ import bgu.spl.net.api.OpMessage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.TreeSet;
 
 public class MessagingProtocolImpl<T> implements MessagingProtocol<OpMessage<Short>> {
     private boolean shouldTerminate;
@@ -79,27 +80,27 @@ public class MessagingProtocolImpl<T> implements MessagingProtocol<OpMessage<Sho
         instructions.put(Consts.KDAMCHECK,(database, msg)->{
             if (!isLoggedIn || isAdmin) return new ErrorMessage(msg.getOpcode());
             CourseNumberMessage message = (CourseNumberMessage)msg;
-            int [] kdamCourses = database.kdamCheck(message.getCourseNumber());
-            return new AckMessage(message.getOpcode(), Arrays.toString(kdamCourses));
+            ArrayList<Integer> kdamCourses = database.kdamCheck(message.getCourseNumber());
+            return new AckMessage(message.getOpcode(), kdamCourses.toString());
         });
         instructions.put(Consts.COURSESTAT,(database, msg)->{
             if (!isLoggedIn || !isAdmin) return new ErrorMessage(msg.getOpcode());
             CourseNumberMessage message = (CourseNumberMessage)msg;
             int courseNum = database.getCourseNum(message.getCourseNumber());
             String courseName = database.getCourseName(message.getCourseNumber());
-            int [] kdamList = database.kdamCheck(message.getCourseNumber());
+            TreeSet<String> studentsRegistered = database.getRegisteredStudents(message.getCourseNumber());
             int numOfMaxStudents = database.getNumOfMaxStudents(message.getCourseNumber());
             int registeredStudentsSize = database.getRegisteredStudentsSize(message.getCourseNumber());
-            String output = "Course: (" + Integer.toString(courseNum) + ") " + courseName + "\nSeats Available: " +
-                    Integer.toString(registeredStudentsSize) +"/"+Integer.toString(numOfMaxStudents) + "\n" +
-                    "Students Registered: " + Arrays.toString(kdamList);
+            String output = "Course: (" + courseNum + ") " + courseName + "\nSeats Available: " +
+                    registeredStudentsSize +"/"+ numOfMaxStudents + "\n" +
+                    "Students Registered: " + studentsRegistered;
             return new AckMessage(message.getOpcode(),output);
         });
         instructions.put(Consts.STUDENTSTAT,(database, msg)->{
             if (!isLoggedIn || !isAdmin) return new ErrorMessage(msg.getOpcode());
             StudentStatMessage message = (StudentStatMessage)msg;
-            ArrayList<Integer> studentCourses = database.getStudentCourses(username);
-            String output = "Student: " + username + "\n" + "Courses: " + studentCourses.toString();
+            ArrayList<Integer> studentCourses = database.getStudentCourses(message.getUserName());
+            String output = "Student: " + message.getUserName() + "\n" + "Courses: " + studentCourses.toString();
             return new AckMessage(message.getOpcode(),output);
         });
         instructions.put(Consts.ISREGISTERED,(database, msg)->{
@@ -121,11 +122,6 @@ public class MessagingProtocolImpl<T> implements MessagingProtocol<OpMessage<Sho
                 return new AckMessage(message.getOpcode(),"");
             }
             else return new ErrorMessage(msg.getOpcode());
-        });
-        instructions.put(Consts.MYCOURSES,(database, msg)->{
-            if (!isLoggedIn || isAdmin) return new ErrorMessage(msg.getOpcode());
-            LogoutMyCoursesMessages message = (LogoutMyCoursesMessages)msg;
-            return new AckMessage(message.getOpcode(),database.getStudentCourses(username).toString());
         });
         instructions.put(Consts.MYCOURSES,(database, msg)->{
             if (!isLoggedIn || isAdmin) return new ErrorMessage(msg.getOpcode());

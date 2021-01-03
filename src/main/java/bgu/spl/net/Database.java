@@ -1,5 +1,8 @@
 package bgu.spl.net;
 
+import sun.reflect.generics.tree.Tree;
+import sun.security.util.math.ImmutableIntegerModuloP;
+
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -20,11 +23,16 @@ public class Database {
     private final HashMap<String,ArrayList<Integer>> studentCourses;
     private final HashMap<Integer,Course> courses;
     private final ArrayList<String> loggedIn;
+    private final ArrayList<Integer> coursesOrder;
     private final ReentrantReadWriteLock studentsReadWriteLock = new ReentrantReadWriteLock();
     private final ReentrantReadWriteLock administratorsReadWriteLock = new ReentrantReadWriteLock();
     private final ReentrantReadWriteLock studentCoursesReadWriteLock = new ReentrantReadWriteLock();
     private final ReentrantReadWriteLock loggedInReadWriteLock = new ReentrantReadWriteLock();
     private final Object registrationLock = new Object();
+
+    public TreeSet<String> getRegisteredStudents(int courseNumber) {
+        return courses.get(courseNumber).getRegisteredStudents();
+    }
 
     private static class DatabaseHolder{
         private static Database instance = new Database();
@@ -39,7 +47,7 @@ public class Database {
         studentCourses= new HashMap<>();
         courses = new HashMap<>();
         loggedIn = new ArrayList<>();
-
+        coursesOrder = new ArrayList<>();
     }
 
     /**
@@ -59,6 +67,7 @@ public class Database {
             for (int i = 0; i < coursesFile.size(); ++i){
                 String[] line = coursesFile.get(i).split("\\|");
                 int  courseNum = Integer.parseInt(line[0]);
+                coursesOrder.add(courseNum);
                 String courseName = line[1];
                 int[] kdamCoursesList;
                 if (line[2].equals("[]")){
@@ -246,8 +255,19 @@ public class Database {
     /**
      * Returns the kdamCourses list of the course
      */
-    public int[] kdamCheck(int courseNum){
-        return courses.get(courseNum).getKdamCoursesList();
+    public ArrayList<Integer> kdamCheck(int courseNum){
+        int [] kdamCourses = courses.get(courseNum).getKdamCoursesList();
+        ArrayList<Integer> tmp = new ArrayList<>();
+        ArrayList<Integer> output = new ArrayList<>();
+        for (int i : kdamCourses){
+            tmp.add(i);
+        }
+        for (int i : coursesOrder){
+            if (tmp.contains(i)){
+                output.add(i);
+            }
+        }
+        return output;
     }
 
     /**
@@ -270,18 +290,6 @@ public class Database {
 
     public int getRegisteredStudentsSize(int courseNum){
         return courses.get(courseNum).getRegisteredStudents().size();
-    }
-
-    /**
-     * Returns the student stat
-     */
-    public ArrayList<Object> studentStat(String studentUsername){
-        ArrayList<Object> output = new ArrayList<>();
-        output.add(studentUsername);
-        studentCoursesReadWriteLock.readLock().lock();
-        output.add(studentCourses.get(studentUsername));
-        studentCoursesReadWriteLock.readLock().unlock();
-        return output;
     }
 
     /**
@@ -323,7 +331,17 @@ public class Database {
     public ArrayList<Integer> getStudentCourses(String studentUsername){
         studentCoursesReadWriteLock.readLock().lock();
         try{
-            return studentCourses.get(studentUsername);
+            ArrayList<Integer> registeredCourses = studentCourses.get(studentUsername);
+            if (registeredCourses == null){
+                return new ArrayList<>();
+            }
+            ArrayList<Integer> output = new ArrayList<>();
+            for (int i : coursesOrder){
+                if (registeredCourses.contains(i)){
+                    output.add(i);
+                }
+            }
+            return output;
         }finally {
             studentCoursesReadWriteLock.readLock().unlock();
         }
