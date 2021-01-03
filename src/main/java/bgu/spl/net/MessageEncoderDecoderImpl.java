@@ -26,10 +26,12 @@ public class MessageEncoderDecoderImpl <T>  implements MessageEncoderDecoder<OpM
 
     @Override
     public OpMessage decodeNextByte(byte nextByte) {
+        System.out.println("got BYTE");
         if(Opcode == Consts.NOT_DECODE_YET){
             if(len == 1){
                 pushByte(nextByte);
                 Opcode = bytesToShort(bytes);
+                System.out.println("opCode 33: " + Opcode);
                 len = 0;
                 if(Opcode == Consts.LOGOUT | Opcode == Consts.MYCOURSES) {
                     message = new LogoutMyCoursesMessages(Opcode);
@@ -60,6 +62,7 @@ public class MessageEncoderDecoderImpl <T>  implements MessageEncoderDecoder<OpM
         }
         else{
             clear();
+            System.out.println("opCode :" + message.getOpcode());
             return message;
         }
 
@@ -71,6 +74,7 @@ public class MessageEncoderDecoderImpl <T>  implements MessageEncoderDecoder<OpM
                 registerLoginMessage.setPassword(popString());
                 registerLoginMessage.setOpcode(Opcode);
                 message = registerLoginMessage;
+                System.out.println("dNBTSM :" + message.getOpcode() + " " + registerLoginMessage.getUserName());
                 endOfMessage = true;
             }
             else{
@@ -83,6 +87,7 @@ public class MessageEncoderDecoderImpl <T>  implements MessageEncoderDecoder<OpM
         if(nextByte == '\0'){
             studentStatMessage.setUserName(popString());
             message = studentStatMessage;
+            System.out.println("dNBOSM :" + message.getOpcode() + " " + studentStatMessage.getUserName());
             endOfMessage = true;
         }
     }
@@ -94,6 +99,7 @@ public class MessageEncoderDecoderImpl <T>  implements MessageEncoderDecoder<OpM
             courseNumberMessage.setOpcode(Opcode);
             message = courseNumberMessage;
             len = 0;
+            System.out.println("dNBOIM :" + message.getOpcode() + " " + courseNumberMessage.getCourseNumber());
             endOfMessage = true;
         }
     }
@@ -112,6 +118,8 @@ public class MessageEncoderDecoderImpl <T>  implements MessageEncoderDecoder<OpM
             ErrorMessage err = (ErrorMessage) message;
             byte [] OpcodeBytes = shortToBytes(err.getOpcode());
             byte [] MessageOpcodeBytes = shortToBytes(err.getMessageOpcode());
+            System.out.println("op code: " + err.getMessageOpcode());
+            System.out.println("message op code: " + MessageOpcodeBytes[0] + " " + MessageOpcodeBytes[1]);
             return append(OpcodeBytes,MessageOpcodeBytes);
         }
 

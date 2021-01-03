@@ -121,6 +121,7 @@ public class Reactor<T> implements Server<T> {
 
     private void runSelectionThreadTasks() {
         while (!selectorTasks.isEmpty()) {
+            System.out.println("sending");
             selectorTasks.remove().run();
         }
     }

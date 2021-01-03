@@ -67,11 +67,16 @@ public class MessagingProtocolImpl<T> implements MessagingProtocol<OpMessage<Sho
         });
         instructions.put(Consts.COURSEREG,(database, msg)->{
             if (!isLoggedIn || isAdmin) return new ErrorMessage(msg.getOpcode());
+
             CourseNumberMessage message = (CourseNumberMessage)msg;
-            if (database.registerCourse(username,message.getCourseNumber()) == Consts.REGISTERED_COURSE_SUCCESSFULLY){
+            int ans = database.registerCourse(username,message.getCourseNumber());
+            System.out.println("the answer is: " + ans);
+            if (ans == Consts.REGISTERED_COURSE_SUCCESSFULLY){
                 return new AckMessage(message.getOpcode(),"");
             }
-            else return new ErrorMessage(msg.getOpcode());
+            else{
+                return new ErrorMessage(msg.getOpcode());
+            }
         });
         instructions.put(Consts.KDAMCHECK,(database, msg)->{
             if (!isLoggedIn || isAdmin) return new ErrorMessage(msg.getOpcode());

@@ -88,6 +88,9 @@ public class Database {
             studentsReadWriteLock.writeLock().lock();
             students.put(studentUsername,studentPassword);
             studentsReadWriteLock.writeLock().unlock();
+            studentCoursesReadWriteLock.writeLock().lock();
+            studentCourses.put(studentUsername, new ArrayList<Integer>());
+            studentCoursesReadWriteLock.writeLock().unlock();
         }
         return Consts.REGISTERED_STUDENT_SUCCESSFULLY;
     }
@@ -227,7 +230,7 @@ public class Database {
             return Consts.NO_SUCH_COURSE;
         }
         Course course = courses.get(courseNum);
-        if (course.getNumOfMaxStudents() >= course.getRegisteredStudents().size()){
+        if (course.getNumOfMaxStudents() <= course.getRegisteredStudents().size()){
             return Consts.COURSE_IS_FULL;
         }
         if (canRegisterToCourse(studentUsername,course) == Consts.DONT_HAVE_KDAMS){

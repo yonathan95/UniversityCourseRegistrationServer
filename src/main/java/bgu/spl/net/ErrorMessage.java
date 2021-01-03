@@ -6,12 +6,8 @@ public class ErrorMessage implements OpMessage<Short> {
     private Short Opcode = 13;
     private short MessageOpcode;
 
-    public ErrorMessage(){
-        MessageOpcode = -1;
-    }
-
     public ErrorMessage(short _messageOpcode){
-        MessageOpcode = -1;
+        MessageOpcode = _messageOpcode;
     }
 
     public void setMessageOpcode(short messageOpcode) {
