@@ -1,4 +1,4 @@
-package bgu.spl.net;
+package bgu.spl.net.impl.BGRSServer;
 
 public class Consts {
     public static final int NOT_REGISTERED = 0;

@@ -1,6 +1,6 @@
-package bgu.spl.net;
+package bgu.spl.net.impl.BGRSServer;
 
-import bgu.spl.net.api.OpMessage;
+import bgu.spl.net.impl.BGRSServer.api.OpMessage;
 
 public class RegisterLoginMessage implements OpMessage<Short> {
     private Short Opcode;

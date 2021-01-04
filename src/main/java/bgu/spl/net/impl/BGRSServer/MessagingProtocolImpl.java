@@ -1,10 +1,9 @@
-package bgu.spl.net;
+package bgu.spl.net.impl.BGRSServer;
 
-import bgu.spl.net.api.MessagingProtocol;
-import bgu.spl.net.api.OpMessage;
+import bgu.spl.net.impl.BGRSServer.api.MessagingProtocol;
+import bgu.spl.net.impl.BGRSServer.api.OpMessage;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.TreeSet;
 

@@ -1,4 +1,4 @@
-package bgu.spl.net;
+package bgu.spl.net.impl.BGRSServer;
 
 import java.util.*;
 

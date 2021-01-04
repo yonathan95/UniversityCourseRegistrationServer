@@ -1,8 +1,5 @@
 package bgu.spl.net.impl.BGRSServer;
-import bgu.spl.net.Database;
-import bgu.spl.net.MessageEncoderDecoderImpl;
-import bgu.spl.net.MessagingProtocolImpl;
-import bgu.spl.net.srv.Server;
+import bgu.spl.net.impl.BGRSServer.srv.Server;
 
 public class ReactorMain {
     public static void main(String[] args) {
