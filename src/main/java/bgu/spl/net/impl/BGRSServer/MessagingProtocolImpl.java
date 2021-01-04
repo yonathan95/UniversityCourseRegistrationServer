@@ -85,7 +85,7 @@ public class MessagingProtocolImpl<T> implements MessagingProtocol<OpMessage<Sho
         instructions.put(Consts.COURSESTAT,(database, msg)->{
             if (!isLoggedIn || !isAdmin) return new ErrorMessage(msg.getOpcode());
             CourseNumberMessage message = (CourseNumberMessage)msg;
-            int courseNum = database.getCourseNum(message.getCourseNumber());
+            int courseNum = message.getCourseNumber();
             String courseName = database.getCourseName(message.getCourseNumber());
             TreeSet<String> studentsRegistered = database.getRegisteredStudents(message.getCourseNumber());
             int numOfMaxStudents = database.getNumOfMaxStudents(message.getCourseNumber());

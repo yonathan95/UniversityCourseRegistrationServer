@@ -270,13 +270,6 @@ public class Database {
     /**
      * Returns the course stat
      */
-    public int getCourseNum(int courseNum){
-        return courses.get(courseNum).getCourseNum();
-    }
-
-    /**
-     * Returns the course stat
-     */
     public String getCourseName(int courseNum){
         return courses.get(courseNum).getCourseName();
     }
