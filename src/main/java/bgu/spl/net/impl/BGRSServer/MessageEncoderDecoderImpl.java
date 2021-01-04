@@ -7,7 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 
-public class MessageEncoderDecoderImpl <T>  implements MessageEncoderDecoder<OpMessage>{
+public class MessageEncoderDecoderImpl<T> implements MessageEncoderDecoder<OpMessage<Short>>{
     private byte[] bytes = new byte[1 << 10];
     private int len = 0;
     private RegisterLoginMessage registerLoginMessage = new RegisterLoginMessage();
@@ -17,9 +17,9 @@ public class MessageEncoderDecoderImpl <T>  implements MessageEncoderDecoder<OpM
     private short Opcode = Consts.NOT_DECODE_YET;
     private int numberOfZero = 0;
     private boolean endOfMessage = false;
-    private short[] OpcodeOfTwoStringMessage ={Consts.ADMINREG,Consts.STUDENTREG,Consts.LOGIN};
-    private short[] OpcodeOfOneStringMessage ={Consts.STUDENTSTAT};
-    private short[] OpcodeOfOneShortMessage = {Consts.COURSEREG,Consts.KDAMCHECK,Consts.COURSESTAT,Consts.ISREGISTERED,Consts.UNREGISTER};
+    private final short[] OpcodeOfTwoStringMessage ={Consts.ADMINREG,Consts.STUDENTREG,Consts.LOGIN};
+    private final short[] OpcodeOfOneStringMessage ={Consts.STUDENTSTAT};
+    private final short[] OpcodeOfOneShortMessage = {Consts.COURSEREG,Consts.KDAMCHECK,Consts.COURSESTAT,Consts.ISREGISTERED,Consts.UNREGISTER};
     private boolean firstZero = true;
 
 
@@ -123,8 +123,7 @@ public class MessageEncoderDecoderImpl <T>  implements MessageEncoderDecoder<OpM
         ByteBuffer buff = ByteBuffer.wrap(allByteArray);
         buff.put(one);
         buff.put(two);
-        byte[] combined = buff.array();
-        return combined;
+        return buff.array();
     }
 
     private String popString(){
@@ -153,8 +152,8 @@ public class MessageEncoderDecoderImpl <T>  implements MessageEncoderDecoder<OpM
         return bytesArr;
     }
     private boolean contains (short[] shortArr,short Opcode){
-        for (short i = 0; i <shortArr.length ; i++){
-            if(shortArr[i] == Opcode){
+        for (short value : shortArr) {
+            if (value == Opcode) {
                 return true;
             }
         }

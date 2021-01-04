@@ -9,8 +9,8 @@ import java.util.TreeSet;
 
 public class MessagingProtocolImpl<T> implements MessagingProtocol<OpMessage<Short>> {
     private boolean shouldTerminate;
-    private Database database;
-    private HashMap<Short,Instruction<OpMessage<Short>>> instructions;
+    private final Database database;
+    private final HashMap<Short,Instruction<OpMessage<Short>>> instructions;
     private String username;
     private boolean isAdmin;
     private boolean isLoggedIn = false;
@@ -35,6 +35,7 @@ public class MessagingProtocolImpl<T> implements MessagingProtocol<OpMessage<Sho
             else return new ErrorMessage(message.getOpcode());
         });
         instructions.put(Consts.LOGIN,(database, msg)->{
+            if(isLoggedIn) return new ErrorMessage(msg.getOpcode());
             RegisterLoginMessage message = (RegisterLoginMessage)msg;
             int loginResult = database.login(message.getUserName(),message.getPassword());
             if (loginResult == Consts.LOGGED_IN_STUDENT_SUCCESSFULLY) {
@@ -66,7 +67,6 @@ public class MessagingProtocolImpl<T> implements MessagingProtocol<OpMessage<Sho
         });
         instructions.put(Consts.COURSEREG,(database, msg)->{
             if (!isLoggedIn || isAdmin) return new ErrorMessage(msg.getOpcode());
-
             CourseNumberMessage message = (CourseNumberMessage)msg;
             int ans = database.registerCourse(username,message.getCourseNumber());
             if (ans == Consts.REGISTERED_COURSE_SUCCESSFULLY){

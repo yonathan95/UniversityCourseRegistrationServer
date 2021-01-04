@@ -10,7 +10,7 @@ public class TPCMain {
         Server.threadPerClient(
                 port, //port
                 () ->  new MessagingProtocolImpl(database), //protocol factory
-                () -> new MessageEncoderDecoderImpl<>() //message encoder decoder factory
+                () -> new MessageEncoderDecoderImpl() //message encoder decoder factory
         ).serve();
     }
 }

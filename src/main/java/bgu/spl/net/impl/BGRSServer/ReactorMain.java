@@ -10,7 +10,7 @@ public class ReactorMain {
         Server.reactor(
                 threadNum,
                 port, //port
-                () ->  new MessagingProtocolImpl(database), //protocol factory
+                () ->  new MessagingProtocolImpl<>(database), //protocol factory
                 () -> new MessageEncoderDecoderImpl<>()//message encoder decoder factory
         ).serve();
     }
