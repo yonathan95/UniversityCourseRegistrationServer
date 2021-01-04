@@ -14,43 +14,41 @@ public class MessageEncoderDecoderImpl<T> implements MessageEncoderDecoder<OpMes
     private StudentStatMessage studentStatMessage = new StudentStatMessage();
     private CourseNumberMessage courseNumberMessage = new CourseNumberMessage();
     private OpMessage message;
-    private short Opcode = Consts.NOT_DECODE_YET;
-    private int numberOfZero = 0;
+    private short opCode = Consts.NOT_DECODED_YET;
+    private int numberOfZeros = 0;
     private boolean endOfMessage = false;
-    private final short[] OpcodeOfTwoStringMessage ={Consts.ADMINREG,Consts.STUDENTREG,Consts.LOGIN};
-    private final short[] OpcodeOfOneStringMessage ={Consts.STUDENTSTAT};
-    private final short[] OpcodeOfOneShortMessage = {Consts.COURSEREG,Consts.KDAMCHECK,Consts.COURSESTAT,Consts.ISREGISTERED,Consts.UNREGISTER};
+    private final short[] opCodeOfTwoStringMessage ={Consts.ADMINREG,Consts.STUDENTREG,Consts.LOGIN};
+    private final short[] opCodeOfOneStringMessage ={Consts.STUDENTSTAT};
+    private final short[] opCodeOfOneShortMessage = {Consts.COURSEREG,Consts.KDAMCHECK,Consts.COURSESTAT,Consts.ISREGISTERED,Consts.UNREGISTER};
     private boolean firstZero = true;
-
-
 
     @Override
     public OpMessage decodeNextByte(byte nextByte) {
-        if(Opcode == Consts.NOT_DECODE_YET){
+        if(opCode == Consts.NOT_DECODED_YET){
             if(len == 1){
                 pushByte(nextByte);
-                Opcode = bytesToShort(bytes);
+                opCode = bytesToShort(bytes);
                 len = 0;
-                if(Opcode == Consts.LOGOUT | Opcode == Consts.MYCOURSES) {
-                    message = new LogoutMyCoursesMessages(Opcode);
-                    Opcode = Consts.NOT_DECODE_YET;
+                if(opCode == Consts.LOGOUT | opCode == Consts.MYCOURSES) {
+                    message = new LogoutMyCoursesMessages(opCode);
+                    opCode = Consts.NOT_DECODED_YET;
                     return message;
                 }
                 return null;
             }
         }
         else{
-            if(contains(OpcodeOfTwoStringMessage,Opcode)){
-                decodeNextByteTwoStringMessage(nextByte);
-                if(numberOfZero == 1 & (firstZero)){
+            if(contains(opCodeOfTwoStringMessage, opCode)){
+                decodeNextByteTwoStringsMessage(nextByte);
+                if(numberOfZeros == 1 & (firstZero)){
                     firstZero = false;
                     return null;
                 }
             }
-            else if(contains(OpcodeOfOneStringMessage,Opcode)){
+            else if(contains(opCodeOfOneStringMessage, opCode)){
                 decodeNextByteOneStringMessage(nextByte);
             }
-            else if(contains(OpcodeOfOneShortMessage,Opcode)){
+            else if(contains(opCodeOfOneShortMessage, opCode)){
                 decodeNextByteOneIntMessage(nextByte);
             }
         }
@@ -62,14 +60,13 @@ public class MessageEncoderDecoderImpl<T> implements MessageEncoderDecoder<OpMes
             clear();
             return message;
         }
-
     }
-    private void decodeNextByteTwoStringMessage(byte nextByte){
+    private void decodeNextByteTwoStringsMessage(byte nextByte){
         if(nextByte == '\0'){
-            numberOfZero++;
-            if(numberOfZero == 2) {
+            numberOfZeros++;
+            if(numberOfZeros == 2) {
                 registerLoginMessage.setPassword(popString());
-                registerLoginMessage.setOpcode(Opcode);
+                registerLoginMessage.setOpcode(opCode);
                 message = registerLoginMessage;
                 endOfMessage = true;
             }
@@ -91,7 +88,7 @@ public class MessageEncoderDecoderImpl<T> implements MessageEncoderDecoder<OpMes
         if(len == 1){
             pushByte(nextByte);
             courseNumberMessage.setCourseNumber(bytesToShort(bytes));
-            courseNumberMessage.setOpcode(Opcode);
+            courseNumberMessage.setOpcode(opCode);
             message = courseNumberMessage;
             len = 0;
             endOfMessage = true;
@@ -102,19 +99,18 @@ public class MessageEncoderDecoderImpl<T> implements MessageEncoderDecoder<OpMes
     public byte[] encode(OpMessage message) {
         if(message.getOpcode().equals(Consts.ACK)){
             AckMessage msg = (AckMessage) message;
-            byte [] OpcodeBytes = shortToBytes(msg.getOpcode());
-            byte [] MessageOpcodeBytes = shortToBytes(msg.getMessageOpcode());
-            byte [] stringTobePrintedBytes = (msg.getStr() + "\0").getBytes();
-            return append(OpcodeBytes,append(MessageOpcodeBytes,stringTobePrintedBytes));
+            byte [] opCodeBytes = shortToBytes(msg.getOpcode());
+            byte [] messageOpcodeBytes = shortToBytes(msg.getMessageOpcode());
+            byte [] stringToBePrintedBytes = (msg.getStr() + "\0").getBytes();
+            return append(opCodeBytes,append(messageOpcodeBytes,stringToBePrintedBytes));
 
         }
         else{
             ErrorMessage err = (ErrorMessage) message;
-            byte [] OpcodeBytes = shortToBytes(err.getOpcode());
-            byte [] MessageOpcodeBytes = shortToBytes(err.getMessageOpcode());
-            return append(OpcodeBytes,MessageOpcodeBytes);
+            byte [] opcodeBytes = shortToBytes(err.getOpcode());
+            byte [] messageOpcodeBytes = shortToBytes(err.getMessageOpcode());
+            return append(opcodeBytes,messageOpcodeBytes);
         }
-
     }
 
     private byte[] append(byte[] one,byte [] two ){
@@ -132,12 +128,12 @@ public class MessageEncoderDecoderImpl<T> implements MessageEncoderDecoder<OpMes
         return result;
     }
 
-     private void pushByte(byte nextByte){
+    private void pushByte(byte nextByte){
         if(len >= bytes.length){
             bytes = Arrays.copyOf(bytes, len * 2);
         }
         bytes[len++] = nextByte;
-     }
+    }
 
     private short bytesToShort (byte[] byteArr){
         short result = (short)((byteArr[0] & 0Xff) << 8);
@@ -151,6 +147,7 @@ public class MessageEncoderDecoderImpl<T> implements MessageEncoderDecoder<OpMes
         bytesArr[1] = (byte)(num & 0xFF);
         return bytesArr;
     }
+
     private boolean contains (short[] shortArr,short Opcode){
         for (short value : shortArr) {
             if (value == Opcode) {
@@ -159,15 +156,15 @@ public class MessageEncoderDecoderImpl<T> implements MessageEncoderDecoder<OpMes
         }
         return false;
     }
+
     private void clear(){
         len = 0;
         registerLoginMessage = new RegisterLoginMessage();
         studentStatMessage = new StudentStatMessage();
         courseNumberMessage = new CourseNumberMessage();
-        Opcode = Consts.NOT_DECODE_YET;
-        numberOfZero = 0;
+        opCode = Consts.NOT_DECODED_YET;
+        numberOfZeros = 0;
         endOfMessage = false;
         firstZero = true;
-
     }
 }

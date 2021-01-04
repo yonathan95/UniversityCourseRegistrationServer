@@ -27,10 +27,6 @@ public class Database {
     private final ReentrantReadWriteLock loggedInReadWriteLock = new ReentrantReadWriteLock();
     private final Object registrationLock = new Object();
 
-    public TreeSet<String> getRegisteredStudents(int courseNumber) {
-        return courses.get(courseNumber).getRegisteredStudents();
-    }
-
     private static class DatabaseHolder{
         private static Database instance = new Database();
     }
@@ -83,6 +79,10 @@ public class Database {
         return true;
     }
 
+    public TreeSet<String> getRegisteredStudents(int courseNumber) {
+        return courses.get(courseNumber).getRegisteredStudents();
+    }
+
     /**
      * Registers a student to the system
      */
@@ -95,7 +95,7 @@ public class Database {
             students.put(studentUsername,studentPassword);
             studentsReadWriteLock.writeLock().unlock();
             studentCoursesReadWriteLock.writeLock().lock();
-            studentCourses.put(studentUsername, new ArrayList<Integer>());
+            studentCourses.put(studentUsername, new ArrayList<>());
             studentCoursesReadWriteLock.writeLock().unlock();
         }
         return Consts.REGISTERED_STUDENT_SUCCESSFULLY;
@@ -184,8 +184,6 @@ public class Database {
             loggedInReadWriteLock.writeLock().unlock();
             studentsReadWriteLock.readLock().unlock();
             administratorsReadWriteLock.readLock().unlock();
-
-
         }
     }
 
@@ -209,8 +207,8 @@ public class Database {
     public int canRegisterToCourse(String studentUsername, Course course){
         studentCoursesReadWriteLock.readLock().lock();
         int [] courseKdams = course.getKdamCoursesList();
-        for (int i = 0 ;i < courseKdams.length; ++i){
-            if (!studentCourses.get(studentUsername).contains(courseKdams[i])){
+        for (int courseKdam : courseKdams) {
+            if (!studentCourses.get(studentUsername).contains(courseKdam)) {
                 studentCoursesReadWriteLock.readLock().unlock();
                 return Consts.DONT_HAVE_KDAMS;
             }
@@ -320,23 +318,17 @@ public class Database {
      */
     public ArrayList<Integer> getStudentCourses(String studentUsername){
         studentCoursesReadWriteLock.readLock().lock();
-        try{
-            ArrayList<Integer> registeredCourses = studentCourses.get(studentUsername);
-            if (registeredCourses == null){
-                return new ArrayList<>();
-            }
-            ArrayList<Integer> output = new ArrayList<>();
-            for (int i : coursesOrder){
-                if (registeredCourses.contains(i)){
-                    output.add(i);
-                }
-            }
-            return output;
-        }finally {
-            studentCoursesReadWriteLock.readLock().unlock();
+        ArrayList<Integer> registeredCourses = studentCourses.get(studentUsername);
+        studentCoursesReadWriteLock.readLock().unlock();
+        if (registeredCourses == null){
+            return new ArrayList<>();
         }
-
+        ArrayList<Integer> output = new ArrayList<>();
+        for (int i : coursesOrder){
+            if (registeredCourses.contains(i)){
+                output.add(i);
+            }
+        }
+        return output;
     }
-
-
 }

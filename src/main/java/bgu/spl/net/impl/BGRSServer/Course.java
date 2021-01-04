@@ -21,10 +21,6 @@ public class Course {
         registeredStudents.add(studentUsername);
     }
 
-    public int getCourseNum() {
-        return courseNum;
-    }
-
     public String getCourseName() {
         return courseName;
     }
