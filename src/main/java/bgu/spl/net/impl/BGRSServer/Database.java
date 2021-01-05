@@ -53,6 +53,8 @@ public class Database {
     /**
      * loads the courses from the file path specified
      * into the Database, returns true if successful.
+     * @param coursesFilePath - the path to the courses file.
+     * @return true if manage to initialize all the all the courses and the coursesOrder
      */
     public boolean initialize(String coursesFilePath) {
         try {
@@ -79,12 +81,19 @@ public class Database {
         return true;
     }
 
+    /**
+     * @param courseNumber- the course number asked about.
+     * @return the username of all the student  registered to a specific course.
+     */
     public TreeSet<String> getRegisteredStudents(int courseNumber) {
         return courses.get(courseNumber).getRegisteredStudents();
     }
 
     /**
      * Registers a student to the system
+     * @param studentUsername - the student username to register.
+     * @param studentPassword - the password for the specific username.
+     * @return - an int represent if the registration succeed or not.
      */
     public int registerStudent(String studentUsername, String studentPassword){
         synchronized (registrationLock){
@@ -103,6 +112,9 @@ public class Database {
 
     /**
      * Registers administrator to the system
+     *  @param administratorUsername - the admin username to register.
+     *  @param administratorPassword - the password for the specific username.
+     *  @return - an int represent if the registration succeed or not.
      */
     public int registerAdministrator(String administratorUsername, String administratorPassword){
         synchronized (registrationLock){
@@ -118,6 +130,8 @@ public class Database {
 
     /**
      * Checks if the user is Registered
+     * @param username - the username to be checked.
+     * @return - an int represent if the student is registered or not.
      */
     public int isRegisteredToServer(String username){
         studentsReadWriteLock.readLock().lock();
@@ -136,6 +150,8 @@ public class Database {
 
     /**
      * Checks if the user is logged in
+     * @param username - the username to be checked.
+     * @return - an int represent if logged or not.
      */
     public int isLoggedIn(String username){
         loggedInReadWriteLock.readLock().lock();
@@ -152,6 +168,9 @@ public class Database {
 
     /**
      * Login the user if possible
+     * @param username - the username to login.
+     * @param password - the password for the specific username to login.
+     * @return - an int represent if the logged in successfully or not.
      */
     public int login(String username, String password){
         loggedInReadWriteLock.writeLock().lock();
@@ -189,6 +208,8 @@ public class Database {
 
     /**
      * Logout the user if possible.
+     * @param username - the username to logout.
+     * @return an int represent if the logged out successfully or not.
      */
     public int logout(String username){
         loggedInReadWriteLock.writeLock().lock();
@@ -203,6 +224,9 @@ public class Database {
 
     /**
      * Check if the user is registered to the kdam courses.
+     * @param studentUsername - the username of a student to check.
+     * @param course - the specific course to check.
+     * @return an int represent if the student can register to the course or not.
      */
     public int canRegisterToCourse(String studentUsername, Course course){
         studentCoursesReadWriteLock.readLock().lock();
@@ -219,6 +243,9 @@ public class Database {
 
     /**
      * Register the student to the course if possible
+     * @param studentUsername - the username of the student to register.
+     * @param courseNum - the course number of the course we register the student to.
+     * @return an int represent if the registration succeed or not and why.
      */
     public int registerCourse(String studentUsername, int courseNum){
         loggedInReadWriteLock.readLock().lock();
@@ -248,7 +275,8 @@ public class Database {
     }
 
     /**
-     * Returns the kdamCourses list of the course
+     * @param courseNum - the course number we want check associated kdam courses.
+     * @return an Arraylist with all the kdam courses associated to the courseNum.
      */
     public ArrayList<Integer> kdamCheck(int courseNum){
         int [] kdamCourses = courses.get(courseNum).getKdamCoursesList();
@@ -266,22 +294,34 @@ public class Database {
     }
 
     /**
-     * Returns the course stat
+     * @param courseNum - the course number we want get it name.
+     * @return the name of course.
      */
     public String getCourseName(int courseNum){
         return courses.get(courseNum).getCourseName();
     }
 
+    /**
+     * @param courseNum - the course number we want get it capacity .
+     * @return the number of student that can register to the course.
+     */
     public int getNumOfMaxStudents(int courseNum){
         return courses.get(courseNum).getNumOfMaxStudents();
     }
 
+    /**
+     * @param courseNum - the course number we want get the number of student registered to it.
+     * @return the number of student that  registered to the course.
+     */
     public int getRegisteredStudentsSize(int courseNum){
         return courses.get(courseNum).getRegisteredStudents().size();
     }
 
     /**
      * Checks if a student is registered to a specific course
+     * @param studentUsername - the username of the student we want to check.
+     * @param courseNum - the course number we want to check.
+     * @return an int represent if the is registered to the course or not.
      */
     public int isRegisteredToCourse(String studentUsername, int courseNum){
         studentCoursesReadWriteLock.readLock().lock();
@@ -297,7 +337,10 @@ public class Database {
     }
 
     /**
-     * Unregisters a student from a specific course if possible
+     * Unregisters a student from a specific course if possible.
+     * @param studentUsername - the username of the student we to unregister.
+     * @param courseNum - the course number we want to unrgister the student from.
+     * @return an int represent if the unregistration succeed or not.
      */
     public int unregisterFromCourse(String studentUsername, int courseNum){
         studentCoursesReadWriteLock.writeLock().lock();
@@ -314,7 +357,8 @@ public class Database {
     }
 
     /**
-     * Returns the courses the student is registered to
+     * @param studentUsername - the student username for which we want to get the the courses he registered to.
+     * @return an ArrayList of the courses the student is registered to
      */
     public ArrayList<Integer> getStudentCourses(String studentUsername){
         studentCoursesReadWriteLock.readLock().lock();
