@@ -15,6 +15,12 @@ public class MessagingProtocolImpl<T> implements MessagingProtocol<OpMessage<Sho
     private boolean isAdmin;
     private boolean isLoggedIn = false;
 
+    /**
+     * MessagingProtocolImpl constructor.
+     * Creates a Lambda function for each opcode to be processed during runtime.
+     * @param _database - the database singleton associated to the application.
+     */
+
     public MessagingProtocolImpl(Database _database){
         shouldTerminate = false;
         database = _database;
@@ -125,11 +131,19 @@ public class MessagingProtocolImpl<T> implements MessagingProtocol<OpMessage<Sho
     }
 
     @Override
+    /**
+     * process the given message
+     * @param msg - the received message
+     * @return the response to send or null if no response is expected by the client
+     */
     public OpMessage process(OpMessage msg){
         return instructions.get(msg.getOpcode()).process(msg);
     }
 
     @Override
+    /**
+     * @return true if the connection should be terminated
+     */
     public boolean shouldTerminate() {
         return shouldTerminate;
     }
