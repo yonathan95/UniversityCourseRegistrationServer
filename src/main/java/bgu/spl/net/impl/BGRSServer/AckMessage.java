@@ -8,33 +8,35 @@ public class AckMessage implements OpMessage<Short> {
     private short MessageOpcode;
     private String str;
 
-
+    /**
+     * Ack constructor.
+     * @param _MessageOpcode the message opcode for which the ack was received.
+     * @param _str - a message attached to the ack message to be printed to the clint side.
+     */
 
     public AckMessage(short _MessageOpcode, String _str){
         MessageOpcode = _MessageOpcode;
         str =_str;
     }
-    public AckMessage(){
-        MessageOpcode = -1;
-        str = null;
-    }
-
+    /**
+     * Ack opcode getter.
+     * @return opcode of an ack message.
+     */
     public Short getOpcode() {
         return Opcode;
     }
-
+    /**
+     * Ack message opcode getter.
+     * @return message opcode for which the ack message was send.
+     */
     public short getMessageOpcode() {
         return MessageOpcode;
     }
-
+    /**
+     * Ack string getter.
+     * @return Ack string.
+     */
     public String getStr() {
         return str;
-    }
-    public void setMessageOpcode(short messageOpcode) {
-        MessageOpcode = messageOpcode;
-    }
-
-    public void setStr(String str) {
-        this.str = str;
     }
 }
