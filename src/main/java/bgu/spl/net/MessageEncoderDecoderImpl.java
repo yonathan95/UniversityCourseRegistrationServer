@@ -93,7 +93,6 @@ public class MessageEncoderDecoderImpl <T>  implements MessageEncoderDecoder<OpM
             courseNumberMessage.setCourseNumber(bytesToShort(bytes));
             courseNumberMessage.setOpcode(Opcode);
             message = courseNumberMessage;
-            len = 0;
             endOfMessage = true;
         }
     }
