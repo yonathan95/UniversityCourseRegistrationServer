@@ -85,7 +85,7 @@ public class MessagingProtocolImpl<T> implements MessagingProtocol<OpMessage<Sho
             if (!isLoggedIn | isAdmin) return new ErrorMessage(msg.getOpcode());
             CourseNumberMessage message = (CourseNumberMessage)msg;
             ArrayList<Integer> kdamCourses = database.kdamCheck(message.getCourseNumber());
-            return new AckMessage(message.getOpcode(), kdamCourses.toString());
+            return new AckMessage(message.getOpcode(), kdamCourses.toString().replace(", ",","));
         });
         instructions.put(Consts.COURSESTAT,(msg)->{
             if (!isLoggedIn | !isAdmin) return new ErrorMessage(msg.getOpcode());
@@ -97,14 +97,14 @@ public class MessagingProtocolImpl<T> implements MessagingProtocol<OpMessage<Sho
             int registeredStudentsSize = database.getRegisteredStudentsSize(message.getCourseNumber());
             String output = "Course: (" + courseNum + ") " + courseName + "\nSeats Available: " +
                             registeredStudentsSize +"/"+ numOfMaxStudents +
-                            "\nStudents Registered: " + studentsRegistered;
+                            "\nStudents Registered: " + studentsRegistered.toString().replace(", ",",");
             return new AckMessage(message.getOpcode(),output);
         });
         instructions.put(Consts.STUDENTSTAT,(msg)->{
             if (!isLoggedIn | !isAdmin) return new ErrorMessage(msg.getOpcode());
             StudentStatMessage message = (StudentStatMessage)msg;
             ArrayList<Integer> studentCourses = database.getStudentCourses(message.getUserName());
-            String output = "Student: " + message.getUserName() + "\nCourses: " + studentCourses.toString();
+            String output = "Student: " + message.getUserName() + "\nCourses: " + studentCourses.toString().replace(", ",",");
             return new AckMessage(message.getOpcode(),output);
         });
         instructions.put(Consts.ISREGISTERED,(msg)->{
@@ -126,7 +126,7 @@ public class MessagingProtocolImpl<T> implements MessagingProtocol<OpMessage<Sho
         instructions.put(Consts.MYCOURSES,(msg)->{
             if (!isLoggedIn | isAdmin) return new ErrorMessage(msg.getOpcode());
             LogoutMyCoursesMessages message = (LogoutMyCoursesMessages)msg;
-            return new AckMessage(message.getOpcode(),database.getStudentCourses(username).toString());
+            return new AckMessage(message.getOpcode(),database.getStudentCourses(username).toString().replace(", ",","));
         });
     }
 
